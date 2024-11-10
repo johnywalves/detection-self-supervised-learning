@@ -1,10 +1,15 @@
 {
     "cSpell.words": [
+        "adamax",
         "autoencoder",
         "autoencoders",
         "dataframe",
+        "figsize",
+        "fromarray",
+        "imshow",
         "kaggle",
         "keras",
+        "pipenv",
         "relu",
         "tensorflow"
     ]

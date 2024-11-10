@@ -1,2 +1,6 @@
+__pycache__
 data/preprocess
 data/malaria_dataset
+figs
+model
+results

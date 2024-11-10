@@ -1,64 +1,19 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
+from src.models import AnomalyConv2DDetector, AnomalyDenseDetector, AnomalyLeakyDetector
+from src.dataframe import get_database_for_training
+from src.training import get_fitness
+from src.report import generate_report
+from src.constants import f_small_samples
 
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+x_train, x_test, y_train, y_test, f_train, f_test = get_database_for_training(f_small_samples)
 
-from tensorflow.keras.models import Model, Sequential
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D
+autoencoderConv2D = AnomalyConv2DDetector()
+history = get_fitness(autoencoderConv2D, 'small_conv2D', x_train, x_test)
+generate_report('small_conv2D', history, autoencoderConv2D, x_test, y_test, f_test)
 
-from functions import get_database_for_training
+autoencoderDense = AnomalyDenseDetector()
+history = get_fitness(autoencoderDense, 'small_dense', x_train, x_test)
+generate_report('small_dense', history, autoencoderDense, x_test, y_test, f_test)
 
-batch_size = 8
-img_width = 128
-img_height = 128
-channel = 3
-
-img_size = (img_width, img_height)
-img_shape = (img_width, img_height, channel)
-
-folder_samples = 'data/small_samples'
-folder_preprocess = 'data/preprocess'
-
-train_data, test_data = get_database_for_training(folder_samples, folder_preprocess, img_size)
-
-class AnomalyDetector(Model):
-    def __init__(self):
-        super(AnomalyDetector, self).__init__()
-
-        self.encoder = Sequential([
-            Input(shape=img_shape),
-
-            Conv2D(32, (3, 3), activation="relu", padding="same"),
-            MaxPooling2D((2, 2), padding="same"),
-
-            Conv2D(16, (3, 3), activation="relu", padding="same"),
-            MaxPooling2D((2, 2), padding="same"),
-
-            Conv2D(8, (3, 3), activation="relu", padding="same"),
-            MaxPooling2D((2, 2), padding="same")
-        ])
-
-        self.decoder = Sequential([
-            Conv2D(8, (3, 3), activation="relu", padding="same"),
-            UpSampling2D((2, 2)),
-
-            Conv2D(16, (3, 3), activation="relu", padding="same"),
-            UpSampling2D((2, 2)),
-
-            Conv2D(32, (3, 3), activation="relu", padding="same"),
-            UpSampling2D((2, 2)),
-
-            Conv2D(1, (3, 3), activation="sigmoid", padding="same")
-        ])
-
-    def call(self, x):
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-        return decoded
-
-autoencoder = AnomalyDetector()
-autoencoder.compile(optimizer='adam', loss="binary_crossentropy")
-
-history = autoencoder.fit(train_data)
-
+autoencoderDense = AnomalyLeakyDetector()
+history = get_fitness(autoencoderDense, 'small_leak', x_train, x_test)
+generate_report('small_leak', history, autoencoderDense, x_test, y_test, f_test)
